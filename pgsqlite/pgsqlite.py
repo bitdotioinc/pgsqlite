@@ -75,6 +75,8 @@ class PGSqlite(object):
         cols = {}
         already_created_pks = [] 
         for col in sqlglot.parse_one(table.schema, read="sqlite").find_all(sqlglot.exp.ColumnDef):
+            # Quote the column name for consistency with later index and foreign key references
+            col.this.set("quoted", True)
             # Fix for two issues in sqlglot
             col_sql_str = col.sql(dialect="postgres").replace("DATETIME", "TIMESTAMP")
             if "SERIAL" in col_sql_str:
@@ -162,15 +164,12 @@ class PGSqlite(object):
         }
         return sql
 
-
-
     def _drop_tables(self):
         db = Database(self.sqlite_filename)
         with psycopg.connect(conninfo=self.pg_conninfo) as conn:
             with conn.cursor() as cur:
                 for table in db.tables:
                     cur.execute(SQL("DROP TABLE IF EXISTS {table_name} CASCADE;").format(table_name=Identifier(table.name)))
-
 
     def get_all_tables_in_postgres(self) -> Optional[List[Any]]:
         tables_in_postgres = []
