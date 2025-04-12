@@ -1,2 +1,1 @@
-# pgsqlite
-databricks bugbounty POC
+# databricks bugbounty POC
